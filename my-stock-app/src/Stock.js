@@ -1,42 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Container from '@mui/material/Container';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
-import Link from '@mui/material/Link';
-import SearchIcon from '@mui/icons-material/Search';
+import React, {useState, useEffect} from 'react';
 import {
-    TextField,
-    Button,
-    Box,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper
+    TextField, Button, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+    Pagination, IconButton, Checkbox, Link, Breadcrumbs, Container, Toolbar, AppBar, Dialog, DialogActions,
+    DialogContent, DialogContentText, DialogTitle
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 
 function Stock() {
 
     const [stocks, setStocks] = useState([]);
+    const [page, setPage] = useState(1);  // current page
+    const rowsPerPage = 10;
+    const [searchQuery, setSearchQuery] = useState('');
+
 
     useEffect(() => {
         fetchStocks();
-    }, []);
+    }, [searchQuery]);
+
 
     const fetchStocks = async () => {
         try {
-            const response = await fetch('/api/stocks');
+            const url = searchQuery ? `/api/stocks/${searchQuery}` : '/api/stocks';
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const contentType = response.headers.get('content-type');
+            let data;
+
             if (contentType && contentType.includes('application/json')) {
-                const data = await response.json();
-                setStocks(data);
-                console.log('Fetched stocks:', data);
+                data = await response.json();
+
+                // Ensure that `data` is always an array
+                const stocksArray = Array.isArray(data) ? data : [data];
+                setStocks(stocksArray);
+
+                console.log('Fetched stocks:', stocksArray);
             } else {
                 const text = await response.text();
                 console.error('Expected JSON but received:', text);
@@ -46,6 +48,8 @@ function Stock() {
         }
     };
 
+
+
     const pages = ['Home', 'Stock', 'Price history', 'Analysis'];
     const breadcrumbs = [
         <Link underline="hover" key="1" color="inherit" href="/stock" sx={{fontWeight: 'bold', color: '#AFA4A4'}}>
@@ -54,15 +58,89 @@ function Stock() {
     ];
     const [ticker, setTicker] = useState('');
 
+
+
     const handleSearch = () => {
-        console.log('Searching for:', ticker);
+        setSearchQuery(ticker);
     };
 
-    const createData = (ticker, ticker_name, sectorNm, price, price1) => {
-        return { ticker, ticker_name, sectorNm, price, price1 };
+
+    const createData = (ticker, name, sectorNm, price) => {
+        return { ticker, name, sectorNm, price };
     };
 
-    const rows = stocks.map(stock => createData(stock.ticker, stock.name, stock.sectorNm, stock.price, stock.price1));
+
+    const rows = stocks.map(stock => createData(stock.ticker, stock.name, stock.sectorNm, stock.price));
+
+    const [open, setOpen] = useState(false);
+    const [newStock, setNewStock] = useState({ticker: '', name: '', sectorNm: '', price: ''});
+
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
+
+    const handleAddStockChange = (e) => {
+        const { name, value } = e.target;
+        setNewStock((prevStock) => ({
+            ...prevStock,
+            [name]: value,
+        }));
+    };
+
+    const handleAddStockSubmit = async () => {
+        try {
+            const response = await fetch(`/api/stocks`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newStock),
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            fetchStocks();
+            setNewStock({ ticker: '', name: '', sectorNm: '', price: '' });
+            setEditStock(null);
+            setOpen(false);
+        } catch (error) {
+            console.error(`Error ${editStock ? 'updating' : 'adding'} stock:`, error);
+        }
+    };
+
+
+    const [editStock, setEditStock] = useState(null);
+    const [selectedStock, setSelectedStock] = useState(null);
+
+    const handleEditClick = (stock) => {
+        setEditStock(stock);
+        setNewStock(stock); // Update the form with the selected stock's details
+        setOpen(true);
+    };
+
+    const handleDeleteClick = async (ticker) => {
+        try {
+            const response = await fetch(`/api/stocks/${ticker}`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            fetchStocks(); // Refresh the stocks list
+        } catch (error) {
+            console.error('Error deleting stock:', error);
+        }
+    };
+
+    const handleDialogClose = () => {
+        setOpen(false);
+        setNewStock({ ticker: '', name: '', sectorNm: '', price: '' }); // Reset form
+        setEditStock(null); // Reset edit stock
+    };
 
 
     return (
@@ -129,7 +207,7 @@ function Stock() {
                         variant="contained"
                         color="primary"
                         onClick={handleSearch}
-                        startIcon={<SearchIcon />}
+                        startIcon={<SearchIcon/>}
                         sx={{
                             backgroundColor: '#AFA4A4',
                             color: 'white',
@@ -155,7 +233,7 @@ function Stock() {
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={handleSearch}
+                        onClick={handleClickOpen}
                         sx={{
                             backgroundColor: '#AFA4A4',
                             color: 'white',
@@ -167,6 +245,7 @@ function Stock() {
                     >
                         Add a stock
                     </Button>
+
                 </Box>
 
                 <TableContainer component={Paper} sx={{maxWidth: 800, margin: 'auto'}}>
@@ -174,48 +253,168 @@ function Stock() {
                         <TableHead>
                             <TableRow sx={{backgroundColor: '#AFA4A4'}}>
                                 <TableCell sx={{color: 'white', fontWeight: 'bold'}}>Ticker</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Name</TableCell>
+                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Sector</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Price</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Action</TableCell>
+                                <TableCell padding="checkbox">
+                                    <Checkbox sx={{color: 'white'}}/>
+                                </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
                             {rows.map((row) => (
                                 <TableRow key={row.ticker}>
-                                    <TableCell component="th" scope="row" sx={{color: '#AFA4A4'}}>
+                                    <TableCell component="th" scope="row" sx={{ color: '#AFA4A4' }}>
                                         {row.ticker}
                                     </TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.ticker_name}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.sectorNm}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.price}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.price1}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.name}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.sectorNm}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.price}</TableCell>
+                                    <TableCell align="right">
+                                        <IconButton aria-label="edit" color="primary" onClick={() => handleEditClick(row)}>
+                                            <EditIcon />
+                                        </IconButton>
+                                        <IconButton aria-label="delete" color="secondary" onClick={() => handleDeleteClick(row.ticker)}>
+                                            <DeleteIcon />
+                                        </IconButton>
+                                    </TableCell>
+                                    <TableCell padding="checkbox">
+                                        <Checkbox />
+                                    </TableCell>
                                 </TableRow>
+
                             ))}
                         </TableBody>
                     </Table>
                 </TableContainer>
+
                 <Box
                     sx={{
-                        mt:4,
+                        mt: 4,
                     }}>
-                <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleSearch}
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSearch}
+                        sx={{
+                            backgroundColor: '#AFA4A4',
+                            color: 'white',
+                            borderRadius: '20px',
+                            '&:hover': {
+                                backgroundColor: '#9e9e9e'
+                            }
+                        }}
+                    >
+                        Delete selected
+                    </Button>
+                </Box>
+                <Box
                     sx={{
-                        backgroundColor: '#AFA4A4',
-                        color: 'white',
-                        borderRadius: '20px',
-                        '&:hover': {
-                            backgroundColor: '#9e9e9e'
-                        }
+                        display: 'flex',
+                        justifyContent: 'center',
+                        mt: 2,
                     }}
                 >
-                    Delete selected
-                </Button>
+                    <Pagination
+                        count={Math.ceil(stocks.length / rowsPerPage)}
+                        page={page}
+                        color="primary"
+                    />
                 </Box>
             </Container>
+            <Dialog open={open} onClose={handleDialogClose}
+                    PaperProps={{
+                        sx: {
+                            width: '400px',
+                            height: '500px',
+                            maxWidth: 'none'
+                        }
+                    }}>
+                <DialogTitle>{editStock ? 'Edit stock' : 'Add a new stock'}</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        label="Ticker"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        name="ticker"
+                        value={newStock.ticker}
+                        onChange={handleAddStockChange}
+                        disabled={!!editStock} // Disable ticker field when editing
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Name"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        name="name"
+                        value={newStock.name}
+                        onChange={handleAddStockChange}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Sector"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        name="sectorNm"
+                        value={newStock.sectorNm}
+                        onChange={handleAddStockChange}
+                    />
+                    <TextField
+                        margin="dense"
+                        label="Price"
+                        type="number"
+                        fullWidth
+                        variant="standard"
+                        name="price"
+                        value={newStock.price}
+                        onChange={handleAddStockChange}
+                    />
+                </DialogContent>
+                <DialogActions
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        padding: 2,
+                    }}
+                >
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                            width: '80%',
+                            maxWidth: '400px',
+                        }}
+                    >
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleAddStockSubmit}
+                            sx={{
+                                width: '100%',
+                                backgroundColor: '#AFA4A4',
+                                color: 'white',
+                                borderRadius: '20px',
+                                '&:hover': {
+                                    backgroundColor: '#9e9e9e'
+                                }
+                            }}
+                        >
+                            {editStock ? 'Update' : 'Submit'}
+                        </Button>
+                    </Box>
+                </DialogActions>
+            </Dialog>
+
+
+
         </div>
     );
 }
