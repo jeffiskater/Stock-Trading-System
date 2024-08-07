@@ -11,6 +11,9 @@ import EditIcon from '@mui/icons-material/Edit';
 function Stock() {
 
     const [stocks, setStocks] = useState([]);
+    const [priceHists, setPriceHists] = useState([]);
+
+    const [totalPages, setTotalPages] = useState(0);
     const [page, setPage] = useState(1);  // current page
     const rowsPerPage = 10;
     const [searchQuery, setSearchQuery] = useState('');
@@ -18,12 +21,18 @@ function Stock() {
 
     useEffect(() => {
         fetchStocks();
-    }, [searchQuery]);
-
+    }, [searchQuery, page]);
 
     const fetchStocks = async () => {
         try {
-            const url = searchQuery ? `/api/stocks/${searchQuery}` : '/api/stocks';
+            let url;
+
+            if (ticker) {
+                url = `/api/stocks/${ticker}`;
+            } else {
+                url = `/api/stocks?page=${page - 1}&size=${rowsPerPage}&name=${searchQuery}`;
+            }
+
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -34,17 +43,49 @@ function Stock() {
             if (contentType && contentType.includes('application/json')) {
                 data = await response.json();
 
-                // Ensure that `data` is always an array
-                const stocksArray = Array.isArray(data) ? data : [data];
-                setStocks(stocksArray);
+                if (ticker) {
+                    setStocks([data]);
+                } else {
+                    setStocks(data.content || []);
+                    setTotalPages(data.totalPages || 0);
+                }
 
-                console.log('Fetched stocks:', stocksArray);
+                console.log('Fetched stocks:', data);
             } else {
                 const text = await response.text();
                 console.error('Expected JSON but received:', text);
             }
         } catch (error) {
             console.error('Error fetching stocks:', error);
+        }
+    };
+
+
+
+    const fetchPriceHist = async (ticker) => {
+        try {
+            const url = `/api/priceHists/${ticker}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const contentType = response.headers.get('content-type');
+            let data;
+
+            if (contentType && contentType.includes('application/json')) {
+                data = await response.json();
+
+                // Ensure that data is always an array
+                const priceHistsArray = Array.isArray(data) ? data : [data];
+                setPriceHists(priceHistsArray);
+
+                console.log('Fetched price histories:', priceHistsArray);
+            } else {
+                const text = await response.text();
+                console.error('Expected JSON but received:', text);
+            }
+        } catch (error) {
+            console.error('Error fetching price histories:', error);
         }
     };
 
@@ -59,18 +100,38 @@ function Stock() {
     const [ticker, setTicker] = useState('');
 
 
-
     const handleSearch = () => {
         setSearchQuery(ticker);
     };
 
 
     const createData = (ticker, name, sectorNm, price) => {
-        return { ticker, name, sectorNm, price };
+        return {ticker, name, sectorNm, price};
     };
 
 
     const rows = stocks.map(stock => createData(stock.ticker, stock.name, stock.sectorNm, stock.price));
+
+    const [price_hist, setPrice_hist] = useState({
+        ticker: '',
+        datetime: '',
+        open: '',
+        high: '',
+        low: '',
+        close: '',
+        volume: ''
+    });
+
+    const price_hists = priceHists.map((hist) => ({
+        ticker: hist.id.ticker,
+        datetime: hist.id.datetime,
+        open: hist.open,
+        high: hist.high,
+        low: hist.low,
+        close: hist.close,
+        volume: hist.volume,
+    }));
+
 
     const [open, setOpen] = useState(false);
     const [newStock, setNewStock] = useState({ticker: '', name: '', sectorNm: '', price: ''});
@@ -79,12 +140,14 @@ function Stock() {
         setOpen(true);
     };
 
+    const [price_hist_form, setPrice_hist_form] = useState(false);
+
     const handleClose = () => {
         setOpen(false);
     };
 
     const handleAddStockChange = (e) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setNewStock((prevStock) => ({
             ...prevStock,
             [name]: value,
@@ -104,7 +167,7 @@ function Stock() {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             fetchStocks();
-            setNewStock({ ticker: '', name: '', sectorNm: '', price: '' });
+            setNewStock({ticker: '', name: '', sectorNm: '', price: ''});
             setEditStock(null);
             setOpen(false);
         } catch (error) {
@@ -116,9 +179,24 @@ function Stock() {
     const [editStock, setEditStock] = useState(null);
     const [selectedStock, setSelectedStock] = useState(null);
 
+    const handleClosePriceHistForm = () => {
+        setPrice_hist_form(false);
+    };
+
+    const handlePriceHistFormOpen = (stock) => {
+        fetchPriceHist(stock.ticker);
+        setPrice_hist_form(true);
+    };
+
+    const handlePriceHistFormClose = () => {
+        setPrice_hist_form(false);
+        setPriceHists([]);
+    };
+
+
     const handleEditClick = (stock) => {
         setEditStock(stock);
-        setNewStock(stock); // Update the form with the selected stock's details
+        setNewStock(stock);
         setOpen(true);
     };
 
@@ -138,8 +216,8 @@ function Stock() {
 
     const handleDialogClose = () => {
         setOpen(false);
-        setNewStock({ ticker: '', name: '', sectorNm: '', price: '' }); // Reset form
-        setEditStock(null); // Reset edit stock
+        setNewStock({ticker: '', name: '', sectorNm: '', price: ''}); // Reset form
+        setEditStock(null);
     };
 
 
@@ -253,7 +331,7 @@ function Stock() {
                         <TableHead>
                             <TableRow sx={{backgroundColor: '#AFA4A4'}}>
                                 <TableCell sx={{color: 'white', fontWeight: 'bold'}}>Ticker</TableCell>
-                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Name</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Sector</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Price</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Action</TableCell>
@@ -265,22 +343,25 @@ function Stock() {
                         <TableBody>
                             {rows.map((row) => (
                                 <TableRow key={row.ticker}>
-                                    <TableCell component="th" scope="row" sx={{ color: '#AFA4A4' }}>
+                                    <TableCell component="th" scope="row" sx={{color: '#AFA4A4'}}>
                                         {row.ticker}
                                     </TableCell>
-                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.name}</TableCell>
-                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.sectorNm}</TableCell>
-                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.price}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.name}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.sectorNm}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.price}</TableCell>
                                     <TableCell align="right">
-                                        <IconButton aria-label="edit" color="primary" onClick={() => handleEditClick(row)}>
-                                            <EditIcon />
+                                        <Link onClick={() => handlePriceHistFormOpen(row)}>Price history </Link>
+                                        <IconButton aria-label="edit" color="primary"
+                                                    onClick={() => handleEditClick(row)}>
+                                            <EditIcon/>
                                         </IconButton>
-                                        <IconButton aria-label="delete" color="secondary" onClick={() => handleDeleteClick(row.ticker)}>
-                                            <DeleteIcon />
+                                        <IconButton aria-label="delete" color="secondary"
+                                                    onClick={() => handleDeleteClick(row.ticker)}>
+                                            <DeleteIcon/>
                                         </IconButton>
                                     </TableCell>
                                     <TableCell padding="checkbox">
-                                        <Checkbox />
+                                        <Checkbox/>
                                     </TableCell>
                                 </TableRow>
 
@@ -317,8 +398,9 @@ function Stock() {
                     }}
                 >
                     <Pagination
-                        count={Math.ceil(stocks.length / rowsPerPage)}
+                        count={totalPages}
                         page={page}
+                        onChange={(event, newPage) => setPage(newPage)}
                         color="primary"
                     />
                 </Box>
@@ -412,7 +494,47 @@ function Stock() {
                     </Box>
                 </DialogActions>
             </Dialog>
+            <Dialog open={price_hist_form} onClose={handlePriceHistFormClose}
+                    PaperProps={{
+                        sx: {
+                            width: '1200px',
+                            height: '800px',
+                            maxWidth: 'none'
+                        }
+                    }}>
+                <DialogTitle>Price history</DialogTitle>
+                <TableContainer component={Paper} sx={{maxWidth: 1000}}>
+                    <Table>
+                        <TableHead>
+                            <TableRow sx={{backgroundColor: '#AFA4A4'}}>
+                                <TableCell sx={{color: 'white', fontWeight: 'bold'}}>Ticker</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Datetime</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Open</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>High</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Low</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Close</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Volume</TableCell>
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {price_hists.map((row) => (
+                                <TableRow key={`${row.ticker}-${row.datetime}`}>
+                                    <TableCell component="th" scope="row" sx={{color: '#AFA4A4'}}>
+                                        {row.ticker}
+                                    </TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.datetime}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.open}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.high}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.low}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.close}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.volume}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
 
+                    </Table>
+                </TableContainer>
+            </Dialog>
 
 
         </div>
