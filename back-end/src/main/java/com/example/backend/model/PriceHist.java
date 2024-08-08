@@ -4,6 +4,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "price_hist")
@@ -13,19 +14,19 @@ public class PriceHist {
     private PriceHistId id;
 
     @Column(name = "open")
-    private Double open;
+    private BigDecimal open;
 
     @Column(name = "high")
-    private Double high;
+    private BigDecimal high;
 
     @Column(name = "low")
-    private Double low;
+    private BigDecimal low;
 
     @Column(name = "close")
-    private Double close;
+    private BigDecimal close;
 
     @Column(name = "volume")
-    private Long volume;
+    private BigDecimal volume;
 
     // Getters and Setters
     public PriceHistId getId() {
@@ -36,43 +37,43 @@ public class PriceHist {
         this.id = id;
     }
 
-    public Double getOpen() {
+    public BigDecimal getOpen() {
         return open;
     }
 
-    public void setOpen(Double open) {
+    public void setOpen(BigDecimal open) {
         this.open = open;
     }
 
-    public Double getHigh() {
+    public BigDecimal getHigh() {
         return high;
     }
 
-    public void setHigh(Double high) {
+    public void setHigh(BigDecimal high) {
         this.high = high;
     }
 
-    public Double getLow() {
+    public BigDecimal getLow() {
         return low;
     }
 
-    public void setLow(Double low) {
+    public void setLow(BigDecimal low) {
         this.low = low;
     }
 
-    public Double getClose() {
+    public BigDecimal getClose() {
         return close;
     }
 
-    public void setClose(Double close) {
+    public void setClose(BigDecimal close) {
         this.close = close;
     }
 
-    public Long getVolume() {
+    public BigDecimal getVolume() {
         return volume;
     }
 
-    public void setVolume(Long volume) {
+    public void setVolume(BigDecimal volume) {
         this.volume = volume;
     }
 }

@@ -14,8 +14,13 @@ function Stock() {
     const [priceHists, setPriceHists] = useState([]);
 
     const [totalPages, setTotalPages] = useState(0);
-    const [page, setPage] = useState(1);  // current page
+    const [page, setPage] = useState(1);
     const rowsPerPage = 10;
+
+    const [totalPriceHistPages, setTotalPriceHistPages] = useState(0);
+    const [currentPriceHistPage, setCurrentPriceHistPage] = useState(1);
+    const rowsPerPagePriceHist = 10;
+
     const [searchQuery, setSearchQuery] = useState('');
 
 
@@ -62,9 +67,9 @@ function Stock() {
 
 
 
-    const fetchPriceHist = async (ticker) => {
+    const fetchPriceHist = async (ticker, page = 1, size = 10) => {
         try {
-            const url = `/api/priceHists/${ticker}`;
+            const url = `/api/priceHists/${ticker}?page=${page - 1}&size=${size}&sort=datetime,desc`;
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -75,9 +80,11 @@ function Stock() {
             if (contentType && contentType.includes('application/json')) {
                 data = await response.json();
 
-                // Ensure that data is always an array
-                const priceHistsArray = Array.isArray(data) ? data : [data];
+                const priceHistsArray = Array.isArray(data.content) ? data.content : [data.content];
                 setPriceHists(priceHistsArray);
+
+                setTotalPriceHistPages(data.totalPages || 0);
+                setCurrentPriceHistPage(data.number + 1);
 
                 console.log('Fetched price histories:', priceHistsArray);
             } else {
@@ -88,6 +95,9 @@ function Stock() {
             console.error('Error fetching price histories:', error);
         }
     };
+
+
+
 
 
 
@@ -184,9 +194,11 @@ function Stock() {
     };
 
     const handlePriceHistFormOpen = (stock) => {
-        fetchPriceHist(stock.ticker);
+        setTicker(stock.ticker);  // Store the ticker
+        fetchPriceHist(stock.ticker);  // Fetch the price history for the selected ticker
         setPrice_hist_form(true);
     };
+
 
     const handlePriceHistFormClose = () => {
         setPrice_hist_form(false);
@@ -503,7 +515,7 @@ function Stock() {
                         }
                     }}>
                 <DialogTitle>Price history</DialogTitle>
-                <TableContainer component={Paper} sx={{maxWidth: 1000}}>
+                <TableContainer component={Paper} sx={{maxWidth: 1000,ml:10}}>
                     <Table>
                         <TableHead>
                             <TableRow sx={{backgroundColor: '#AFA4A4'}}>
@@ -531,12 +543,26 @@ function Stock() {
                                 </TableRow>
                             ))}
                         </TableBody>
-
                     </Table>
                 </TableContainer>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        mt: 2,
+                    }}
+                >
+                    <Pagination
+                        count={totalPriceHistPages}
+                        page={currentPriceHistPage}
+                        onChange={(event, newPage) => {
+                            setCurrentPriceHistPage(newPage);
+                            fetchPriceHist(ticker, newPage, rowsPerPagePriceHist); // Pass ticker correctly here
+                        }}
+                        color="primary"
+                    />
+                </Box>
             </Dialog>
-
-
         </div>
     );
 }
