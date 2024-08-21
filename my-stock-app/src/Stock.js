@@ -7,6 +7,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import CloseIcon from'@mui/icons-material/Close';
 
 function Stock() {
 
@@ -66,7 +67,6 @@ function Stock() {
     };
 
 
-
     const fetchPriceHist = async (ticker, page = 1, size = 10) => {
         try {
             const url = `/api/priceHists/${ticker}?page=${page - 1}&size=${size}&sort=datetime,desc`;
@@ -95,10 +95,6 @@ function Stock() {
             console.error('Error fetching price histories:', error);
         }
     };
-
-
-
-
 
 
     const pages = ['Home', 'Stock', 'Price history', 'Analysis'];
@@ -236,9 +232,9 @@ function Stock() {
     return (
         <div>
             <AppBar position="static" sx={{backgroundColor: '#AFA4A4'}}>
-                <Container maxWidth="xl">
+                <Container>
                     <Toolbar>
-                        <Box sx={{flexGrow: 1, display: {xs: 'none', md: 'flex'}}}>
+                        <Box display="flex" gap={6}>
                             {pages.map((page) => (
                                 <Button
                                     key={page}
@@ -251,8 +247,10 @@ function Stock() {
                     </Toolbar>
                 </Container>
             </AppBar>
-            <Container sx={{maxWidth: "xl", mt: 3}}>
-                <Breadcrumbs separator="›" aria-label="breadcrumb">
+
+
+            <div style={{width: "100%"}}>
+                <Breadcrumbs separator="›" aria-label="breadcrumb" ml={20} mt={4}>
                     {breadcrumbs}
                 </Breadcrumbs>
                 <Box
@@ -260,8 +258,8 @@ function Stock() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 2,
-                        ml: 10,
                         my: 2,
+                        ml: 20
                     }}
                 >
                     <TextField
@@ -325,6 +323,7 @@ function Stock() {
                         color="primary"
                         onClick={handleClickOpen}
                         sx={{
+                            mr: 20,
                             backgroundColor: '#AFA4A4',
                             color: 'white',
                             borderRadius: '20px',
@@ -338,49 +337,52 @@ function Stock() {
 
                 </Box>
 
-                <TableContainer component={Paper} sx={{maxWidth: 800, margin: 'auto'}}>
+                <TableContainer component={Paper} sx={{ maxWidth: 2200, minHeight: 784, margin: 'auto' }}>
                     <Table>
                         <TableHead>
-                            <TableRow sx={{backgroundColor: '#AFA4A4'}}>
-                                <TableCell sx={{color: 'white', fontWeight: 'bold'}}>Ticker</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Name</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Sector</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Price</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Action</TableCell>
+                            <TableRow sx={{ backgroundColor: '#AFA4A4' }}>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ticker</TableCell>
+                                <TableCell align="left" sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
+                                <TableCell align="left" sx={{ color: 'white', fontWeight: 'bold' }}>Sector</TableCell>
+                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>Price</TableCell>
+                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>Action</TableCell>
                                 <TableCell padding="checkbox">
-                                    <Checkbox sx={{color: 'white'}}/>
+                                    <Checkbox sx={{ color: 'white' }} />
                                 </TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {rows.map((row) => (
-                                <TableRow key={row.ticker}>
-                                    <TableCell component="th" scope="row" sx={{color: '#AFA4A4'}}>
+                            {rows.map((row, index) => (
+                                <TableRow
+                                    key={row.ticker}
+                                    sx={{
+                                        backgroundColor: index % 2 === 0 ? 'white' : '#D6CFCF',
+                                    }}
+                                >
+                                    <TableCell component="th" scope="row" sx={{ color: '#AFA4A4' }}>
                                         {row.ticker}
                                     </TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.name}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.sectorNm}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.price}</TableCell>
+                                    <TableCell align="left" sx={{ color: '#AFA4A4' }}>{row.name}</TableCell>
+                                    <TableCell align="left" sx={{ color: '#AFA4A4' }}>{row.sectorNm}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.price}</TableCell>
                                     <TableCell align="right">
                                         <Link onClick={() => handlePriceHistFormOpen(row)}>Price history </Link>
-                                        <IconButton aria-label="edit" color="primary"
-                                                    onClick={() => handleEditClick(row)}>
-                                            <EditIcon/>
+                                        <IconButton aria-label="edit" color="primary" onClick={() => handleEditClick(row)}>
+                                            <EditIcon />
                                         </IconButton>
-                                        <IconButton aria-label="delete" color="secondary"
-                                                    onClick={() => handleDeleteClick(row.ticker)}>
-                                            <DeleteIcon/>
+                                        <IconButton aria-label="delete" color="secondary" onClick={() => handleDeleteClick(row.ticker)}>
+                                            <DeleteIcon />
                                         </IconButton>
                                     </TableCell>
                                     <TableCell padding="checkbox">
-                                        <Checkbox/>
+                                        <Checkbox />
                                     </TableCell>
                                 </TableRow>
-
                             ))}
                         </TableBody>
                     </Table>
                 </TableContainer>
+
 
                 <Box
                     sx={{
@@ -391,6 +393,7 @@ function Stock() {
                         color="primary"
                         onClick={handleSearch}
                         sx={{
+                            ml: 20,
                             backgroundColor: '#AFA4A4',
                             color: 'white',
                             borderRadius: '20px',
@@ -416,7 +419,7 @@ function Stock() {
                         color="primary"
                     />
                 </Box>
-            </Container>
+            </div>
             <Dialog open={open} onClose={handleDialogClose}
                     PaperProps={{
                         sx: {
@@ -426,6 +429,18 @@ function Stock() {
                         }
                     }}>
                 <DialogTitle>{editStock ? 'Edit stock' : 'Add a new stock'}</DialogTitle>
+                <IconButton
+                    aria-label="close"
+                    onClick={handleClose}
+                    sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        color: (theme) => theme.palette.grey[500],
+                    }}
+                >
+                    <CloseIcon></CloseIcon>
+                </IconButton>
                 <DialogContent>
                     <TextField
                         autoFocus
@@ -515,6 +530,39 @@ function Stock() {
                         }
                     }}>
                 <DialogTitle>Price history</DialogTitle>
+                <IconButton
+                    aria-label="close"
+                    onClick={handleClosePriceHistForm}
+                    sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        color: (theme) => theme.palette.grey[500],
+                    }}
+                >
+                    <CloseIcon></CloseIcon>
+                </IconButton>
+                <Box
+                    sx={{
+                        my: 2,
+                        ml:2
+                    }}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSearch}
+                        sx={{
+                            backgroundColor: '#AFA4A4',
+                            color: 'white',
+                            borderRadius: '20px',
+                            '&:hover': {
+                                backgroundColor: '#9e9e9e'
+                            }
+                        }}
+                    >
+                        Fetch price history
+                    </Button>
+                </Box>
                 <TableContainer component={Paper} sx={{maxWidth: 1000,ml:10}}>
                     <Table>
                         <TableHead>
@@ -557,7 +605,7 @@ function Stock() {
                         page={currentPriceHistPage}
                         onChange={(event, newPage) => {
                             setCurrentPriceHistPage(newPage);
-                            fetchPriceHist(ticker, newPage, rowsPerPagePriceHist); // Pass ticker correctly here
+                            fetchPriceHist(ticker, newPage, rowsPerPagePriceHist);
                         }}
                         color="primary"
                     />
