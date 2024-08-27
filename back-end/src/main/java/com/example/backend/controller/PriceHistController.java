@@ -28,6 +28,12 @@ public class PriceHistController {
     public void fetchAndStorePriceHists(@PathVariable String ticker) {
         try {
             priceHistService.fetchAndStorePriceHist(ticker);
+            priceHistService.calculateAndStoreSMA(ticker, 5);
+            priceHistService.calculateAndStoreSMA(ticker, 10);
+            priceHistService.calculateAndStoreSMA(ticker, 21);
+            priceHistService.calculateAndStoreSMA(ticker, 50);
+            priceHistService.calculateAndStoreSMA(ticker, 100);
+            priceHistService.calculateAndStoreSMA(ticker, 200);
         } catch (Exception e) {
             e.printStackTrace();
         }

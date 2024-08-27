@@ -25,8 +25,6 @@ public class AlphaVantageService {
             throw new Exception("Failed to fetch data from Alpha Vantage");
         }
 
-        System.out.println("Alpha Vantage response: " + response);
-
 
         JSONObject json = new JSONObject(response);
 
@@ -51,7 +49,6 @@ public class AlphaVantageService {
             dataMap.put("volume", new BigDecimal(dailyData.getString("5. volume")));
             dailyPrices.put(date, dataMap);
         }
-        System.out.println("Parsed daily prices: " + dailyPrices);
 
         return dailyPrices;
     }

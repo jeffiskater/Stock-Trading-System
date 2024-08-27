@@ -7,7 +7,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
-import CloseIcon from'@mui/icons-material/Close';
+import CloseIcon from '@mui/icons-material/Close';
 
 function Stock() {
 
@@ -33,8 +33,8 @@ function Stock() {
         try {
             let url;
 
-            if (ticker) {
-                url = `/api/stocks/${ticker}`;
+            if (searchTicker) {
+                url = `/api/stocks/${searchTicker}`;
             } else {
                 url = `/api/stocks?page=${page - 1}&size=${rowsPerPage}&name=${searchQuery}`;
             }
@@ -49,7 +49,7 @@ function Stock() {
             if (contentType && contentType.includes('application/json')) {
                 data = await response.json();
 
-                if (ticker) {
+                if (searchTicker) {
                     setStocks([data]);
                 } else {
                     setStocks(data.content || []);
@@ -96,6 +96,23 @@ function Stock() {
         }
     };
 
+    const fetchFromFinaceAPI = async () => {
+        try {
+            const response = await fetch(`/api/priceHists/fetch/${ticker}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            fetchPriceHist(ticker)
+            console.log('Successfully fetching the price history of ' + ticker);
+        } catch (error) {
+            console.error('Error fetching price histories:', error);
+        }
+    }
 
     const pages = ['Home', 'Stock', 'Price history', 'Analysis'];
     const breadcrumbs = [
@@ -104,10 +121,11 @@ function Stock() {
         </Link>,
     ];
     const [ticker, setTicker] = useState('');
+    const [searchTicker, setSearchTicker] = useState('');
 
 
     const handleSearch = () => {
-        setSearchQuery(ticker);
+        setSearchQuery(searchTicker);
     };
 
 
@@ -266,8 +284,8 @@ function Stock() {
                         size="small"
                         label="Ticker Search"
                         variant="outlined"
-                        value={ticker}
-                        onChange={(e) => setTicker(e.target.value)} // Update ticker value on change
+                        value={searchTicker}
+                        onChange={(e) => setSearchTicker(e.target.value)}
                         sx={{
                             width: "180px",
                             '& .MuiOutlinedInput-root': {
@@ -337,17 +355,17 @@ function Stock() {
 
                 </Box>
 
-                <TableContainer component={Paper} sx={{ maxWidth: 2200, minHeight: 784, margin: 'auto' }}>
+                <TableContainer component={Paper} sx={{maxWidth: 2200, minHeight: 784, margin: 'auto'}}>
                     <Table>
                         <TableHead>
-                            <TableRow sx={{ backgroundColor: '#AFA4A4' }}>
-                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ticker</TableCell>
-                                <TableCell align="left" sx={{ color: 'white', fontWeight: 'bold' }}>Name</TableCell>
-                                <TableCell align="left" sx={{ color: 'white', fontWeight: 'bold' }}>Sector</TableCell>
-                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>Price</TableCell>
-                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>Action</TableCell>
+                            <TableRow sx={{backgroundColor: '#AFA4A4'}}>
+                                <TableCell sx={{color: 'white', fontWeight: 'bold'}}>Ticker</TableCell>
+                                <TableCell align="left" sx={{color: 'white', fontWeight: 'bold'}}>Name</TableCell>
+                                <TableCell align="left" sx={{color: 'white', fontWeight: 'bold'}}>Sector</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Price</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Action</TableCell>
                                 <TableCell padding="checkbox">
-                                    <Checkbox sx={{ color: 'white' }} />
+                                    <Checkbox sx={{color: 'white'}}/>
                                 </TableCell>
                             </TableRow>
                         </TableHead>
@@ -359,23 +377,25 @@ function Stock() {
                                         backgroundColor: index % 2 === 0 ? 'white' : '#D6CFCF',
                                     }}
                                 >
-                                    <TableCell component="th" scope="row" sx={{ color: '#AFA4A4' }}>
+                                    <TableCell component="th" scope="row" sx={{color: '#AFA4A4'}}>
                                         {row.ticker}
                                     </TableCell>
-                                    <TableCell align="left" sx={{ color: '#AFA4A4' }}>{row.name}</TableCell>
-                                    <TableCell align="left" sx={{ color: '#AFA4A4' }}>{row.sectorNm}</TableCell>
-                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.price}</TableCell>
+                                    <TableCell align="left" sx={{color: '#AFA4A4'}}>{row.name}</TableCell>
+                                    <TableCell align="left" sx={{color: '#AFA4A4'}}>{row.sectorNm}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.price}</TableCell>
                                     <TableCell align="right">
                                         <Link onClick={() => handlePriceHistFormOpen(row)}>Price history </Link>
-                                        <IconButton aria-label="edit" color="primary" onClick={() => handleEditClick(row)}>
-                                            <EditIcon />
+                                        <IconButton aria-label="edit" color="primary"
+                                                    onClick={() => handleEditClick(row)}>
+                                            <EditIcon/>
                                         </IconButton>
-                                        <IconButton aria-label="delete" color="secondary" onClick={() => handleDeleteClick(row.ticker)}>
-                                            <DeleteIcon />
+                                        <IconButton aria-label="delete" color="secondary"
+                                                    onClick={() => handleDeleteClick(row.ticker)}>
+                                            <DeleteIcon/>
                                         </IconButton>
                                     </TableCell>
                                     <TableCell padding="checkbox">
-                                        <Checkbox />
+                                        <Checkbox/>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -545,12 +565,12 @@ function Stock() {
                 <Box
                     sx={{
                         my: 2,
-                        ml:2
+                        ml: 2
                     }}>
                     <Button
                         variant="contained"
                         color="primary"
-                        onClick={handleSearch}
+                        onClick={fetchFromFinaceAPI}
                         sx={{
                             backgroundColor: '#AFA4A4',
                             color: 'white',
@@ -560,15 +580,15 @@ function Stock() {
                             }
                         }}
                     >
-                        Fetch price history
+                        Update price history
                     </Button>
                 </Box>
-                <TableContainer component={Paper} sx={{maxWidth: 1000,ml:10}}>
+                <TableContainer component={Paper} sx={{maxWidth: 1000, ml: 10}}>
                     <Table>
                         <TableHead>
                             <TableRow sx={{backgroundColor: '#AFA4A4'}}>
                                 <TableCell sx={{color: 'white', fontWeight: 'bold'}}>Ticker</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Datetime</TableCell>
+                                <TableCell align="left" sx={{color: 'white', fontWeight: 'bold'}}>Datetime</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Open</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>High</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>Low</TableCell>
@@ -577,12 +597,15 @@ function Stock() {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {price_hists.map((row) => (
-                                <TableRow key={`${row.ticker}-${row.datetime}`}>
+                            {price_hists.map((row, index) => (
+                                <TableRow key={`${row.ticker}-${row.datetime}`} sx={{
+                                    backgroundColor: index % 2 === 0 ? 'white' : '#D6CFCF',
+                                }}>
                                     <TableCell component="th" scope="row" sx={{color: '#AFA4A4'}}>
                                         {row.ticker}
                                     </TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.datetime}</TableCell>
+                                    <TableCell align="left"
+                                               sx={{color: '#AFA4A4'}}>{row.datetime.substring(0, 10)}</TableCell>
                                     <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.open}</TableCell>
                                     <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.high}</TableCell>
                                     <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.low}</TableCell>

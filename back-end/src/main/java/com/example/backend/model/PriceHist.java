@@ -28,6 +28,27 @@ public class PriceHist {
     @Column(name = "volume")
     private BigDecimal volume;
 
+    @Column(name = "sma5")
+    private BigDecimal sma5;
+
+    @Column(name = "sma10")
+    private BigDecimal sma10;
+
+    @Column(name = "sma21")
+    private BigDecimal sma21;
+
+    @Column(name = "sma50")
+    private BigDecimal sma50;
+
+    @Column(name = "sma100")
+    private BigDecimal sma100;
+
+    @Column(name = "sma200")
+    private BigDecimal sma200;
+
+    public PriceHist() {
+    }
+
     // Getters and Setters
     public PriceHistId getId() {
         return id;
@@ -75,5 +96,53 @@ public class PriceHist {
 
     public void setVolume(BigDecimal volume) {
         this.volume = volume;
+    }
+
+    public BigDecimal getSma5() {
+        return sma5;
+    }
+
+    public void setSma5(BigDecimal sma5) {
+        this.sma5 = sma5;
+    }
+
+    public BigDecimal getSma10() {
+        return sma10;
+    }
+
+    public void setSma10(BigDecimal sma10) {
+        this.sma10 = sma10;
+    }
+
+    public BigDecimal getSma21() {
+        return sma21;
+    }
+
+    public void setSma21(BigDecimal sma21) {
+        this.sma21 = sma21;
+    }
+
+    public BigDecimal getSma50() {
+        return sma50;
+    }
+
+    public void setSma50(BigDecimal sma50) {
+        this.sma50 = sma50;
+    }
+
+    public BigDecimal getSma100() {
+        return sma100;
+    }
+
+    public void setSma100(BigDecimal sma100) {
+        this.sma100 = sma100;
+    }
+
+    public BigDecimal getSma200() {
+        return sma200;
+    }
+
+    public void setSma200(BigDecimal sma200) {
+        this.sma200 = sma200;
     }
 }
