@@ -8,6 +8,8 @@ import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import CloseIcon from '@mui/icons-material/Close';
+import {useNavigate} from 'react-router-dom';
+
 
 function Stock() {
 
@@ -24,10 +26,11 @@ function Stock() {
 
     const [searchQuery, setSearchQuery] = useState('');
 
-
     useEffect(() => {
         fetchStocks();
     }, [searchQuery, page]);
+
+    const navigate = useNavigate();
 
     const fetchStocks = async () => {
         try {
@@ -384,7 +387,8 @@ function Stock() {
                                     <TableCell align="left" sx={{color: '#AFA4A4'}}>{row.sectorNm}</TableCell>
                                     <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.price}</TableCell>
                                     <TableCell align="right">
-                                        <Link onClick={() => handlePriceHistFormOpen(row)}>Price history </Link>
+                                        <Button onClick={() => navigate(`/analysis/${row.ticker}`)}>Analysis</Button>
+                                        <Button onClick={() => handlePriceHistFormOpen(row)}>Price history </Button>
                                         <IconButton aria-label="edit" color="primary"
                                                     onClick={() => handleEditClick(row)}>
                                             <EditIcon/>
