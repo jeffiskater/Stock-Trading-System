@@ -108,4 +108,8 @@ public class PriceHistService {
             priceHistRepository.save(currentPriceHist);
         }
     }
+
+    public List<PriceHist> getPriceHist(String ticker, LocalDateTime startDate, LocalDateTime endDate) {
+        return priceHistRepository.findByIdTickerAndIdDatetimeBetween(ticker, startDate, endDate);
+    }
 }
