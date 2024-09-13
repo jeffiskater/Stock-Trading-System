@@ -1,7 +1,5 @@
 package com.example.backend.service;
 
-// TradeService.java
-
 import com.example.backend.model.PriceHist;
 import com.example.backend.model.Trade;
 import org.springframework.stereotype.Service;

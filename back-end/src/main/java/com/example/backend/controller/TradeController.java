@@ -20,7 +20,7 @@ public class TradeController {
     private TradeService tradeService;
 
     @Autowired
-    private PriceHistService priceHistService; // 获取历史价格数据的服务
+    private PriceHistService priceHistService;
 
     @GetMapping
     public List<Trade> getTrades(@RequestParam String ticker, @RequestParam String startDate, @RequestParam String endDate,
@@ -28,7 +28,7 @@ public class TradeController {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         LocalDateTime start = LocalDateTime.parse(startDate, formatter);
         LocalDateTime end = LocalDateTime.parse(endDate, formatter);
-        List<PriceHist> priceHists = priceHistService.getPriceHist(ticker, start, end); // 获取指定时间范围内的价格历史
+        List<PriceHist> priceHists = priceHistService.getPriceHist(ticker, start, end);
         return tradeService.generateTrades(priceHists, start, end, buySignal, sellSignal);
     }
 }
