@@ -62,7 +62,9 @@ function Analysis() {
         tradeDate: trade.tradeDate,
         price: trade.price,
         tradeType: trade.tradeType,
-        tradeAmt: trade.tradeAmt,
+        stockBalance: trade.stockBalance,
+        cashBalance: trade.cashBalance,
+        totalBalance: trade.totalBalance,
         shares: trade.shares
     }));
 
@@ -225,7 +227,6 @@ function Analysis() {
                     <Button
                         variant="contained"
                         color="primary"
-                        startIcon={<SearchIcon/>}
                         onClick={smaAnalysis}
                         sx={{
                             backgroundColor: '#AFA4A4',
@@ -302,7 +303,7 @@ function Analysis() {
                             maxWidth: 'none'
                         }
                     }}>
-                <DialogTitle>Price history</DialogTitle>
+                <DialogTitle>Trade Balance</DialogTitle>
                 <IconButton
                     aria-label="close"
                     onClick={handleTradeFormClose}
@@ -330,8 +331,9 @@ function Analysis() {
                                 <TableCell align="left" sx={{color: 'white', fontWeight: 'bold'}}>trade
                                     type</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>price</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>trade
-                                    amount</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>stock balance</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>cash balance</TableCell>
+                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>total balance</TableCell>
                                 <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>shares</TableCell>
                             </TableRow>
                         </TableHead>
@@ -347,7 +349,9 @@ function Analysis() {
                                                sx={{color: '#AFA4A4'}}>{row.tradeDate}</TableCell>
                                     <TableCell align="left" sx={{color: '#AFA4A4'}}>{row.tradeType}</TableCell>
                                     <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.price}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.tradeAmt}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.stockBalance}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.cashBalance}</TableCell>
+                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.totalBalance}</TableCell>
                                     <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.shares}</TableCell>
                                 </TableRow>
                             ))}

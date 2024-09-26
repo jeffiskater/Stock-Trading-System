@@ -16,20 +16,24 @@ public class Trade {
     private String ticker;
     private LocalDate tradeDate;
     private double price;
-    private String tradeType; // "Buy" or "Sell"
-    private double tradeAmt;
+    private String tradeType; // "Buy", "Sell" or "N/A"
+    private double stockBalance; // Current stock value
+    private double cashBalance;  // Current cash balance
+    private double totalBalance; // Total balance = stockBalance + cashBalance
     private double shares;
 
     // Default constructor
     public Trade() {}
 
     // Constructor with parameters
-    public Trade(String ticker, LocalDate tradeDate, double price, String tradeType, double tradeAmt, double shares) {
+    public Trade(String ticker, LocalDate tradeDate, double price, String tradeType, double stockBalance, double cashBalance, double totalBalance, double shares) {
         this.ticker = ticker;
         this.tradeDate = tradeDate;
         this.price = price;
         this.tradeType = tradeType;
-        this.tradeAmt = tradeAmt;
+        this.stockBalance = stockBalance;
+        this.cashBalance = cashBalance;
+        this.totalBalance = totalBalance;
         this.shares = shares;
     }
 
@@ -74,12 +78,28 @@ public class Trade {
         this.tradeType = tradeType;
     }
 
-    public double getTradeAmt() {
-        return tradeAmt;
+    public double getStockBalance() {
+        return stockBalance;
     }
 
-    public void setTradeAmt(double tradeAmt) {
-        this.tradeAmt = tradeAmt;
+    public void setStockBalance(double stockBalance) {
+        this.stockBalance = stockBalance;
+    }
+
+    public double getCashBalance() {
+        return cashBalance;
+    }
+
+    public void setCashBalance(double cashBalance) {
+        this.cashBalance = cashBalance;
+    }
+
+    public double getTotalBalance() {
+        return totalBalance;
+    }
+
+    public void setTotalBalance(double totalBalance) {
+        this.totalBalance = totalBalance;
     }
 
     public double getShares() {

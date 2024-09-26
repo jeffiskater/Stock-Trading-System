@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,38 +15,63 @@ public class TradeService {
     public List<Trade> generateTrades(List<PriceHist> priceHists, LocalDateTime startDate, LocalDateTime endDate, String buySignal, String sellSignal) {
         List<Trade> trades = new ArrayList<>();
         BigDecimal initialAmount = new BigDecimal("10000.0"); // Initial amount
-        BigDecimal balance = initialAmount;
-        BigDecimal shares = BigDecimal.ZERO;
+        BigDecimal cashBalance = initialAmount; // Starting cash balance
+        BigDecimal shares = BigDecimal.ZERO; // No initial shares
 
         for (int i = 1; i < priceHists.size(); i++) {
             PriceHist currentDay = priceHists.get(i);
             PriceHist previousDay = priceHists.get(i - 1);
 
-            // Compare previous day's SMA and today's closing price to determine signal
+            BigDecimal stockBalance = shares.multiply(currentDay.getClose()); // Current stock value
+            BigDecimal totalBalance = stockBalance.add(cashBalance); // Total balance = cash + stock
+
+            // If a buy signal is triggered
             if (buySignalTriggered(previousDay, buySignal) && shares.equals(BigDecimal.ZERO)) {
                 BigDecimal openPrice = currentDay.getOpen();
-                shares = balance.divide(openPrice, BigDecimal.ROUND_HALF_UP); // Use opening price to buy stocks
+                shares = cashBalance.divide(openPrice, BigDecimal.ROUND_HALF_UP); // Buy stocks using all cash
+                cashBalance = BigDecimal.ZERO; // All cash used
+
                 trades.add(new Trade(
                         currentDay.getId().getTicker(),
                         currentDay.getId().getDatetime().toLocalDate(),
                         openPrice.doubleValue(),
                         "Buy",
-                        balance.doubleValue(),
+                        stockBalance.doubleValue(),
+                        cashBalance.doubleValue(),
+                        totalBalance.doubleValue(),
                         shares.doubleValue()
                 ));
-                balance = BigDecimal.ZERO; // Use all funds to buy stocks
-            } else if (sellSignalTriggered(previousDay, sellSignal) && shares.compareTo(BigDecimal.ZERO) > 0) {
+            }
+            // If a sell signal is triggered
+            else if (sellSignalTriggered(previousDay, sellSignal) && shares.compareTo(BigDecimal.ZERO) > 0) {
                 BigDecimal openPrice = currentDay.getOpen();
-                balance = shares.multiply(openPrice); // Account balance after selling
+                cashBalance = shares.multiply(openPrice); // Cash after selling
+                stockBalance = BigDecimal.ZERO; // Sold all stock
+                shares = BigDecimal.ZERO; // No shares left
+                totalBalance = stockBalance.add(cashBalance); // Update total balance
+
                 trades.add(new Trade(
                         currentDay.getId().getTicker(),
                         currentDay.getId().getDatetime().toLocalDate(),
                         openPrice.doubleValue(),
                         "Sell",
-                        balance.doubleValue(),
+                        stockBalance.doubleValue(),
+                        cashBalance.doubleValue(),
+                        totalBalance.doubleValue(),
                         shares.doubleValue()
                 ));
-                shares = BigDecimal.ZERO; // Clear shares
+            } else {
+                // No trade for the day, record "N/A"
+                trades.add(new Trade(
+                        currentDay.getId().getTicker(),
+                        currentDay.getId().getDatetime().toLocalDate(),
+                        currentDay.getClose().doubleValue(),
+                        "N/A",
+                        stockBalance.doubleValue(),
+                        cashBalance.doubleValue(),
+                        totalBalance.doubleValue(),
+                        shares.doubleValue()
+                ));
             }
         }
 
