@@ -37,7 +37,7 @@ import {AdapterDateFns} from '@mui/x-date-pickers/AdapterDateFns';
 
 function Analysis() {
 
-    const {ticker} = useParams();
+    const [ticker,setTicker] = useState('')
     const [priceHists, setPriceHists] = useState([]);
 
 
@@ -70,10 +70,20 @@ function Analysis() {
 
 
     useEffect(() => {
-        fetchPriceHist()
+        fetchCurrentTicker()
     }, [currentPriceHistPage]);
 
-    const fetchPriceHist = async () => {
+    const fetchCurrentTicker = async () => {
+        const storedTicker = localStorage.getItem('currentTicker');
+        console.log(storedTicker);
+        if (storedTicker) {
+            setTicker(storedTicker);
+            await fetchPriceHist(storedTicker);
+        }
+    };
+
+
+    const fetchPriceHist = async (ticker) => {
         try {
             const url = `/api/priceHists/${ticker}?page=${currentPriceHistPage - 1}&size=${rowsPerPagePriceHist}&sort=datetime,desc`;
             const response = await fetch(url);
@@ -131,10 +141,10 @@ function Analysis() {
         }
     };
 
-    const pages = ['Home', 'Stock', 'Price history', 'Analysis'];
+    const pages = ['Home', 'Stock', 'Price history', 'Simulation'];
     const breadcrumbs = [
         <Link underline="hover" key="1" color="inherit" href="/stock" sx={{fontWeight: 'bold', color: '#AFA4A4'}}>
-            Analysis
+            simulation
         </Link>,
     ];
 
@@ -155,24 +165,6 @@ function Analysis() {
 
     return (
         <div>
-            <AppBar position="static" sx={{backgroundColor: '#AFA4A4'}}>
-                <Container>
-                    <Toolbar>
-                        <Box display="flex" gap={6}>
-                            {pages.map((page) => (
-                                <Button
-                                    key={page}
-                                    sx={{my: 2, color: 'white', display: 'block', fontWeight: 'bold'}}
-                                >
-                                    {page}
-                                </Button>
-                            ))}
-                        </Box>
-                    </Toolbar>
-                </Container>
-            </AppBar>
-
-
             <div style={{width: "100%"}}>
                 <Breadcrumbs separator="›" aria-label="breadcrumb" ml={20} mt={4}>
                     {breadcrumbs}
@@ -239,7 +231,7 @@ function Analysis() {
                             }
                         }}
                     >
-                        Analysis
+                        run simulation
                     </Button>
                 </Box>
                 <TableContainer component={Paper} sx={{maxWidth: 2200, minHeight: 784, margin: 'auto'}}>
@@ -325,16 +317,15 @@ function Analysis() {
                 <TableContainer component={Paper} sx={{maxWidth: 1000, ml: 10}}>
                     <Table>
                         <TableHead>
-                            <TableRow sx={{backgroundColor: '#AFA4A4'}}>
-                                <TableCell sx={{color: 'white', fontWeight: 'bold'}}>Ticker</TableCell>
-                                <TableCell align="left" sx={{color: 'white', fontWeight: 'bold'}}>tradeDate</TableCell>
-                                <TableCell align="left" sx={{color: 'white', fontWeight: 'bold'}}>trade
-                                    type</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>price</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>stock balance</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>cash balance</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>total balance</TableCell>
-                                <TableCell align="right" sx={{color: 'white', fontWeight: 'bold'}}>shares</TableCell>
+                            <TableRow sx={{ backgroundColor: '#AFA4A4' }}>
+                                <TableCell sx={{ color: 'white', fontWeight: 'bold' }}>Ticker</TableCell>
+                                <TableCell align="left" sx={{ color: 'white', fontWeight: 'bold' }}>tradeDate</TableCell>
+                                <TableCell align="left" sx={{ color: 'white', fontWeight: 'bold' }}>trade type</TableCell>
+                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>price</TableCell>
+                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>stock balance</TableCell>
+                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>cash balance</TableCell>
+                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>total balance</TableCell>
+                                <TableCell align="right" sx={{ color: 'white', fontWeight: 'bold' }}>shares</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
@@ -342,17 +333,16 @@ function Analysis() {
                                 <TableRow key={`${row.ticker}-${row.tradeDate}`} sx={{
                                     backgroundColor: index % 2 === 0 ? 'white' : '#D6CFCF',
                                 }}>
-                                    <TableCell component="th" scope="row" sx={{color: '#AFA4A4'}}>
+                                    <TableCell component="th" scope="row" sx={{ color: '#AFA4A4' }}>
                                         {row.ticker}
                                     </TableCell>
-                                    <TableCell align="left"
-                                               sx={{color: '#AFA4A4'}}>{row.tradeDate}</TableCell>
-                                    <TableCell align="left" sx={{color: '#AFA4A4'}}>{row.tradeType}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.price}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.stockBalance}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.cashBalance}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.totalBalance}</TableCell>
-                                    <TableCell align="right" sx={{color: '#AFA4A4'}}>{row.shares}</TableCell>
+                                    <TableCell align="left" sx={{ color: '#AFA4A4' }}>{row.tradeDate}</TableCell>
+                                    <TableCell align="left" sx={{ color: '#AFA4A4' }}>{row.tradeType}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.price.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.stockBalance.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.cashBalance.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.totalBalance.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{ color: '#AFA4A4' }}>{row.shares.toFixed(2)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
